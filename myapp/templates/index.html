@@ -8,16 +8,17 @@
 
 <form method='post'>
 {% csrf_token %}
-    A: {{ form.a }} </br>
-    B: {{ form.b }} </br>
-<input type="submit" value="提交">
-</form>
-
-<select>
+<select name = "cx">
     {% for obj in objlist %}
-        <option value ="{{ forloop.counter }}">{{ obj }}</option>
+        <option value ="{{ obj }}">{{ obj }}</option>
     {% endfor %}
-</select>
+</select>  </br> </br>
+
+    A: {{ form.a }} </br> </br>
+    B: {{ form.b }} </br> </br>
+
+<input type="submit" value="choosed"/>
+</form >
 
 </body>
 </html>

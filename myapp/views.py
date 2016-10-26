@@ -36,7 +36,10 @@ def index(request):
 
 
 def mytest(request):
-    obj_list = func.mysql_query('select host  from db_servers_mysql;')
+    results = func.mysql_query('select host  from db_servers_mysql;')
+    obj_list=[]
+    for row in results:
+        obj_list.append(row[0])
     print type(obj_list)
 
     if request.method == 'POST':
@@ -44,8 +47,8 @@ def mytest(request):
         if form.is_valid():
             a = form.cleaned_data['a']
             b = form.cleaned_data['b']
-
-            return HttpResponse(a+b)
+            c=request.POST['cx']
+            return HttpResponse("OK %s"  %c)
     else:
         form = AddForm()
     return render(request, 'index.html', {'form': form,'objlist':obj_list})
