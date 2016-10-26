@@ -1,9 +1,13 @@
+import sys
+import os
 from django.shortcuts import render
-
-# Create your views here.
+from form import AddForm
 from django.http import HttpResponse
 import datetime
 from django import forms
+path='./myapp/include'
+sys.path.insert(0,path)
+import function as func
 # Create your views here.
 class Testform(forms.Form):
 	user = forms.CharField(max_length=30)
@@ -25,15 +29,24 @@ def add(request):
     f = Testform()
     return render(request , 'template.html',{'form':f})
 
-
-'''
-def index(request):
-    t=loader.get_template('home.html')
-    c=Context({})
-    return HttpResponse(t.render(c))
-    #return render(request, 'home.html')
-'''
 def index(request):
     user=Person('Max',33,'male')
     booklist=['python','java']
     return render(request, 'home.html',{'user':user,'title':'mytitle','book_list':booklist})
+
+
+def mytest(request):
+    obj_list = func.mysql_query('select host  from db_servers_mysql;')
+    print type(obj_list)
+
+    if request.method == 'POST':
+        form = AddForm(request.POST)
+        if form.is_valid():
+            a = form.cleaned_data['a']
+            b = form.cleaned_data['b']
+
+            return HttpResponse(a+b)
+    else:
+        form = AddForm()
+    return render(request, 'index.html', {'form': form,'objlist':obj_list})
+

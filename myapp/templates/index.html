@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>"MY_FORM" </title>
+</head>
+<body>
+
+<form method='post'>
+{% csrf_token %}
+    A: {{ form.a }} </br>
+    B: {{ form.b }} </br>
+<input type="submit" value="提交">
+</form>
+
+<select>
+    {% for obj in objlist %}
+        <option value ="{{ forloop.counter }}">{{ obj }}</option>
+    {% endfor %}
+</select>
+
+</body>
+</html>

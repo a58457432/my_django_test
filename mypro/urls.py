@@ -20,6 +20,7 @@ urlpatterns = (
     url(r'^$', myapp_view.index, name='home'),
     url(r'^myapp/',myapp_view.sayHello),
     url(r'^add/$', myapp_view.add, name='add'),
+    url(r'^mytest/$', myapp_view.mytest, name=''),
     url(r'^admin/', admin.site.urls),
    # url(r'^admin/', sayHello),
 )
