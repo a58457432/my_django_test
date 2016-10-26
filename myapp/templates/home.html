@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+<h1> hello {{user.name}}</h1>
+<li>age :{{ user.age }}</li>
+<li>sex :{{ user.sex }}</li>
+{% for item in book_list %}
+   <li> {{ forloop.counter  }} : {{ item }} </li>
+{% endfor %}
+</body>
+</html>
