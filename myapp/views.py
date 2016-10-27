@@ -57,19 +57,16 @@ def mytest(request):
         form = AddForm()
         return render(request, 'index.html', {'form': form,'objlist':obj_list})
 
-def myjs(request):
-    results,col = func.mysql_query('select host from db_servers_mysql;')
-    obj_list=[]
-    for row in results:
-        obj_list.append(row[0])
+def mysql_query(request):
+    obj_list = func.get_mysql_hostlist()
     print type(obj_list)
     if request.method == 'POST':
         form = AddForm(request.POST)
         if form.is_valid():
             a = form.cleaned_data['a']
             c = request.POST['cx']
-            (booklist,collist) = func.mysql_query(a)
-            return render(request,'js.html',{'form': form,'objlist':obj_list,'book_list':booklist,'col':collist})
+            (data_mysql,collist) = func.get_mysql_data(c,a)
+            return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'book_list':data_mysql,'col':collist})
     else:
         form = AddForm()
-        return render(request, 'js.html', {'form': form,'objlist':obj_list})
+        return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})

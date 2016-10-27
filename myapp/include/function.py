@@ -36,6 +36,7 @@ port = get_config('monitor_server','port')
 user = get_config('monitor_server','user')
 passwd = get_config('monitor_server','passwd')
 dbname = get_config('monitor_server','dbname')
+
 def mysql_exec(sql,param):
     try:
         conn=MySQLdb.connect(host=host,user=user,passwd=passwd,port=int(port),connect_timeout=5,charset='utf8')
@@ -52,7 +53,7 @@ def mysql_exec(sql,param):
        print "mysql execute: " + str(e)
 
 
-def mysql_query(sql):
+def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbname):
     conn=MySQLdb.connect(host=host,user=user,passwd=passwd,port=int(port),connect_timeout=5,charset='utf8')
     conn.select_db(dbname)
     cursor = conn.cursor()
@@ -66,7 +67,28 @@ def mysql_query(sql):
     cursor.close()
     conn.close()
 
+def get_mysql_hostlist():
+    results,col = mysql_query('select host from db_servers_mysql;')
+    host_list=[]
+    for row in results:
+        host_list.append(row[0])
+    return host_list
+
+
+def get_mysql_data(hosttag,sql):
+    test= "select username,password,host,port from db_servers_mysql where host= '%s' limit 1" % (hosttag)
+    results,col = mysql_query(test)
+    for row in results:
+        tar_username = row[0]
+        tar_passwd = row[1]
+        tar_host = row[2]
+        tar_port = row[3]
+
+    #print tar_port+tar_passwd+tar_username+tar_host
+    results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port)
+    return results,col
+
 def main():
-    result=mysql_query('select *  from db_servers_mysql;')
+    result=get_mysql_data('10.1.70.220','select *  from db_servers_mysql;')
 if __name__=='__main__':
     main()

@@ -22,6 +22,6 @@ urlpatterns = (
     url(r'^add/$', myapp_view.add, name='add'),
     url(r'^mytest/$', myapp_view.mytest, name=''),
     url(r'^admin/', admin.site.urls),
-    url(r'^js/', myapp_view.myjs,name='myjs'),
+    url(r'^js/', myapp_view.mysql_query,name='mysql_query'),
    # url(r'^admin/', sayHello),
 )
