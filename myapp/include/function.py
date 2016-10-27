@@ -24,6 +24,7 @@ def get_item(data_dict,item):
 def get_config(group,config_name):
     config = ConfigParser.ConfigParser()
     config.readfp(open('./myapp/etc/config.ini','r'))
+    #config.readfp(open('../etc/config.ini','r'))
     config_value=config.get(group,config_name).strip(' ').strip('\'').strip('\"')
     return config_value
 
@@ -56,17 +57,16 @@ def mysql_query(sql):
     conn.select_db(dbname)
     cursor = conn.cursor()
     count=cursor.execute(sql)
-    if count == 0 :
-        result=0
-    else:
-        result=cursor.fetchall()
-    return result
+    index=cursor.description
+    col=[]
+    for i in index:
+        col.append(i[0])
+    result=cursor.fetchall()
+    return (result,col)
     cursor.close()
     conn.close()
 
 def main():
-    result=mysql_query('select host  from db_servers_mysql;')
-    print result
-
+    result=mysql_query('select *  from db_servers_mysql;')
 if __name__=='__main__':
     main()

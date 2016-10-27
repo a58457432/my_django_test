@@ -1,0 +1,121 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jstest</title>
+    <!-- Bootstrap theme -->
+    <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/css/bootstrap-theme.min.css' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/js/jquery-3.1.1.min.js' %}" rel="stylesheet">
+    <link href="{% static 'bootstrap/js/bootstrap.min.js' %}" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Query Platform</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="#">Settings</a></li>
+                <li><a href="#">Profile</a></li>
+                <li><a href="#">Help</a></li>
+            </ul>
+            <form class="navbar-form navbar-right">
+                <input type="text" class="form-control" placeholder="Search...">
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <ul class="nav nav-sidebar">
+                <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
+                <li><a href="#" onclick="showAtRight('home.html')"><i class="fa fa-list-alt"></i>MySQL</a></li>
+                <li><a href="#">Mongodb</a></li>
+                <li><a href="#">Export</a></li>
+            </ul>
+
+        </div>
+
+        <div class="col-md-10 main ">
+            <!--Body content-->
+            <h1 class="page-header"><i class="fa fa-cog fa-spin"></i><small>&nbsp;&nbsp;&nbsp;欢迎使用数据库自助查询系统</small></h1>
+
+            <!-- 载入左侧菜单指向的jsp（或html等）页面内容 -->
+            <div id="content">
+                <form method='post'>
+                    {% csrf_token %}
+                    <select name = "cx">
+                        {% for obj in objlist %}
+                            <option value ="{{ obj }}">{{ obj }}</option>
+                        {% endfor %}
+                    </select>  </br> </br>
+
+                    SQL: {{ form.a }} </br> </br>
+
+                    <input type="submit" value="提交"/>
+                </form >
+
+                <table class="table table-condensed" border="1">
+                    <tr class="success">
+                        {% for colname in col %}
+                            <th>{{ colname }}</th>
+                        {% endfor %}
+                    </tr>
+                    {% for item in book_list %}
+                        <tr>
+                            {% for item_detail in item %}
+                                <td> {{ item_detail }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src={% static 'bootstrap/js/jquery-3.1.1.min.js' %}></script>
+    <script>
+        $(document).ready(function(){
+            $.ajaxSetup({
+                 data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            });
+        $('#formadd').submit(function(){
+                var name = $("#id_name").val();                 //获得form中用户输入的name 注意这里的id_name 与你html中的id一致
+                var password = $("#id_password").val();    //同上
+
+                $.ajax({
+                    type:"POST",
+                    data: {name:name, password:password},
+                    url: "{% url 'blog:comments_upload' %}", //后台处理函数的url 这里用的是static url 需要与urls.py中的name一致
+                    cache: false,
+                    dataType: "html",
+                    success: function(result, statues, xml){
+                        alert(result);                                         //成功时弹出view传回来的结果
+                    },
+                    error: function(){
+                        alert("false");
+                    }
+                });
+                return false;
+            });
+
+        });
+    </script>
+</body>
+</html>
