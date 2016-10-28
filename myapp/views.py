@@ -1,42 +1,60 @@
 import sys
 import json
 import os
-from django.shortcuts import render
-from form import AddForm
-from django.http import HttpResponse
+from django.template.context import RequestContext
+from django.shortcuts import render,render_to_response
+from django.contrib import auth
+from form import AddForm,LoginForm
+from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
 import datetime
-from django import forms
-from django.http import JsonResponse
 path='./myapp/include'
 sys.path.insert(0,path)
 import function as func
 # Create your views here.
-class Testform(forms.Form):
-	user = forms.CharField(max_length=30)
-	password = forms.CharField(max_length=30)
-
-class Person(object):
-    def __init__(self,name,age,sex):
-        self.name = name
-        self.age = age
-        self.sex = sex
-def sayHello(request):
-    s = 'Hello World!'
-    current_time = datetime.datetime.now()
-    html = '<html><head></head><body><h1> %s </h1><p> %s </p></body></html>' % (s, current_time)
-    return render(request , 'temp.html')
-    #return HttpResponse(html)
-
-def add(request):
-    f = Testform()
-    return render(request , 'base.html')
 
 def index(request):
-    user=Person('Max',33,'male')
-    booklist=[]
-    (booklist,collist) = func.mysql_query('select * from db_servers_mysql')
-    i=0
-    return render(request, 'home.html',{'user':user,'title':'mytitle','book_list':booklist,'col':collist})
+    if request.user.is_authenticated():
+        return render(request, 'include/base.html')
+    else:
+        return HttpResponseRedirect("/accounts/login/")
+
+def login(request):
+    if request.method == 'GET':
+        form = LoginForm()
+        return render_to_response('login.html', RequestContext(request, {'form': form,}))
+    else:
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = auth.authenticate(username=username, password=password)
+            if user is not None and user.is_active:
+                auth.login(request, user)
+                return render(request,'include/base.html')
+            else:
+                return render_to_response('login.html', RequestContext(request, {'form': form,'password_is_wrong':True}))
+        else:
+            return render_to_response('login.html', RequestContext(request, {'form': form,}))
+
+def logout(request):
+    auth.logout(request)
+    return HttpResponseRedirect("/accounts/login/")
+'''
+def login_view(request):
+    username = request.POST.get('username', '')
+    password = request.POST.get('password', '')
+    user = auth.authenticate(username=username, password=password)
+    if user is not None and user.is_active:
+        # Correct password, and the user is marked "active"
+        auth.login(request, user)
+        # Redirect to a success page.
+        return HttpResponseRedirect("/loggedin/")
+    else:
+        # Show an error page
+        return HttpResponseRedirect("/invalid/")
+'''
+
+
 
 
 def mytest(request):
@@ -58,15 +76,20 @@ def mytest(request):
         return render(request, 'index.html', {'form': form,'objlist':obj_list})
 
 def mysql_query(request):
-    obj_list = func.get_mysql_hostlist()
-    print type(obj_list)
-    if request.method == 'POST':
-        form = AddForm(request.POST)
-        if form.is_valid():
-            a = form.cleaned_data['a']
-            c = request.POST['cx']
-            (data_mysql,collist) = func.get_mysql_data(c,a)
-            return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'book_list':data_mysql,'col':collist})
+    if request.user.is_authenticated():
+        obj_list = func.get_mysql_hostlist()
+        print type(obj_list)
+        if request.method == 'POST':
+            form = AddForm(request.POST)
+            if form.is_valid():
+                a = form.cleaned_data['a']
+                c = request.POST['cx']
+                (data_mysql,collist) = func.get_mysql_data(c,a)
+                return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'book_list':data_mysql,'col':collist})
+        else:
+            form = AddForm()
+            return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
     else:
-        form = AddForm()
-        return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
+        return HttpResponseRedirect("/accounts/login/")
+
+

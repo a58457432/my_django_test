@@ -17,11 +17,9 @@ from django.conf.urls import url
 from django.contrib import admin
 from myapp import views as myapp_view
 urlpatterns = (
-    url(r'^$', myapp_view.index, name='home'),
-    url(r'^myapp/',myapp_view.sayHello),
-    url(r'^add/$', myapp_view.add, name='add'),
-    url(r'^mytest/$', myapp_view.mytest, name=''),
+    url(r'^$', myapp_view.index, name='index'),
+    url(r'^accounts/login/$',myapp_view.login,name='login'),
+    url(r'^accounts/logout/$',myapp_view.logout,name='logout'),
     url(r'^admin/', admin.site.urls),
-    url(r'^js/', myapp_view.mysql_query,name='mysql_query'),
-   # url(r'^admin/', sayHello),
+    url(r'^mysql_query/$', myapp_view.mysql_query,name='mysql_query'),
 )

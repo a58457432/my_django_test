@@ -1,5 +1,7 @@
-{% extends "include/template.html" %}
-
+{% extends "include/base.html" %}
+{% block title %}
+     <title>MySQL_QUERY</title>
+{% endblock %}
 {%block content%}
     <form role="form" method='post'>
         {% csrf_token %}
