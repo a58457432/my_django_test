@@ -1,22 +1,19 @@
-import sys
-import json
-import os
+import sys,json,os,datetime
 from django.template.context import RequestContext
 from django.shortcuts import render,render_to_response
 from django.contrib import auth
 from form import AddForm,LoginForm
-from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
-import datetime
+from django.http import HttpResponse,HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+
 path='./myapp/include'
 sys.path.insert(0,path)
 import function as func
 # Create your views here.
-
+@login_required
 def index(request):
-    if request.user.is_authenticated():
-        return render(request, 'include/base.html')
-    else:
-        return HttpResponseRedirect("/accounts/login/")
+    return render(request, 'include/base.html')
+
 
 def login(request):
     if request.method == 'GET':
@@ -36,6 +33,7 @@ def login(request):
         else:
             return render_to_response('login.html', RequestContext(request, {'form': form,}))
 
+@login_required
 def logout(request):
     auth.logout(request)
     return HttpResponseRedirect("/accounts/login/")
