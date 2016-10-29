@@ -1,11 +1,9 @@
 #!/bin/env python
 #-*-coding:utf-8-*-
+import MySQLdb,sys,string,time,datetime
+from django.contrib.auth.models import User
+from myapp.models import Db_name,Db_account,Db_instance
 
-import MySQLdb
-import string
-import time
-import datetime
-import sys
 reload(sys)
 sys.setdefaultencoding('utf8')
 import ConfigParser
@@ -67,25 +65,38 @@ def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbna
     cursor.close()
     conn.close()
 
-def get_mysql_hostlist():
-    results,col = mysql_query('select host from db_servers_mysql;')
+#获取下拉菜单列表
+def get_mysql_hostlist(username):
+    a = User.objects.get(username=username)
     host_list=[]
-    for row in results:
-        host_list.append(row[0])
+    #如果没有对应role='read'或者role='all'的account账号，则不显示在下拉菜单中
+    for row in a.db_name_set.all():
+        if row.db_account_set.all().exclude(role='write'):
+            host_list.append(row.dbtag)
     return host_list
 
 
 def get_mysql_data(hosttag,sql):
-    test= "select username,password,host,port from db_servers_mysql where host= '%s' limit 1" % (hosttag)
-    results,col = mysql_query(test)
-    for row in results:
-        tar_username = row[0]
-        tar_passwd = row[1]
-        tar_host = row[2]
-        tar_port = row[3]
+    #确认dbname
+    a = Db_name.objects.filter(dbtag=hosttag)[0]
+    #a = Db_name.objects.get(dbtag=hosttag)
+    tar_dbname = a.dbname
+    #如果instance中有备库role='read'，则选择从备库读取
+    if a.instance.all().filter(role='read')[0]:
+        tar_host = a.instance.all().filter(role='read')[0].ip
+        tar_port = a.instance.all().filter(role='read')[0].port
+    #如果没有设置或没有role=read，则选择第一个库读取
+    else:
+        tar_host = a.instance.all()[0].ip
+        tar_port = a.instance.all()[0].port
 
+    for i in a.db_account_set.all():
+        if i.role!='write':
+            tar_username = i.user
+            tar_passwd = i.passwd
+    print a.dbname
     #print tar_port+tar_passwd+tar_username+tar_host
-    results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port)
+    results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port,tar_dbname)
     return results,col
 
 def main():

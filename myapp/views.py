@@ -74,20 +74,26 @@ def mytest(request):
         return render(request, 'index.html', {'form': form,'objlist':obj_list})
 
 def mysql_query(request):
-    if request.user.is_authenticated():
-        obj_list = func.get_mysql_hostlist()
-        print type(obj_list)
-        if request.method == 'POST':
-            form = AddForm(request.POST)
-            if form.is_valid():
-                a = form.cleaned_data['a']
-                c = request.POST['cx']
-                (data_mysql,collist) = func.get_mysql_data(c,a)
-                return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'book_list':data_mysql,'col':collist})
+    try:
+        if request.user.is_authenticated():
+            print request.user.username
+
+            obj_list = func.get_mysql_hostlist(request.user.username)
+            if request.method == 'POST':
+                form = AddForm(request.POST)
+                if form.is_valid():
+                    a = form.cleaned_data['a']
+                    c = request.POST['cx']
+                    (data_mysql,collist) = func.get_mysql_data(c,a)
+                    print c.encode("utf-8")
+                    print type(c)
+                    return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'book_list':data_mysql,'col':collist,'choosed_host':c})
+            else:
+                form = AddForm()
+                return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
         else:
-            form = AddForm()
-            return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
-    else:
-        return HttpResponseRedirect("/accounts/login/")
+            return HttpResponseRedirect("/accounts/login/")
+    except Exception,e:
+        return render(request, 'include/base.html')
 
 

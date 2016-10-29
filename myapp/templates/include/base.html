@@ -25,7 +25,7 @@
 
         <div class="col-md-10 main ">
             <!--Body content-->
-            <h1 ><small>&nbsp;&nbsp;欢迎使用数据库自助查询平台</small></h1>
+            <h1 ><small>&nbsp;&nbsp;{% block name %}欢迎使用数据库管理平台 {% endblock %}</small></h1>
 
             <!-- 载入左侧菜单指向的jsp（或html等）页面内容 -->
             <div id="content">
@@ -39,7 +39,7 @@
     </div>
 </div>
 {% block foot %}
-    {% include "include/foot.html" %}
+{% include "include/foot.html" %}
 {% endblock %}
 </body>
 </html>

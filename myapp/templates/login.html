@@ -1,6 +1,6 @@
 {% extends "include/base.html" %}
 {% block title %}
-    <title>LOGIN_IN</title>
+    <title xmlns="http://www.w3.org/1999/html">LOGIN_IN</title>
 {% endblock %}
 {%block content%}
     {% if password_is_wrong %}
@@ -13,7 +13,7 @@
             {% csrf_token %}
             <div class="form-group">
                 <table>
-                  <tr>
+                    <tr>
                         <td>
                             {{ form }}
                         </td>

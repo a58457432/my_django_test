@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 class LoginForm(forms.Form):
     username = forms.CharField(
         required=True,
+        max_length=25,
         label="用户名",
         error_messages={'required': '请输入用户名'},
         widget=forms.TextInput(
@@ -14,6 +15,7 @@ class LoginForm(forms.Form):
     )
     password = forms.CharField(
     required=True,
+    max_length=25,
     label="密码",
     error_messages={'required': u'请输入密码'},
     widget=forms.PasswordInput(
@@ -28,4 +30,4 @@ class LoginForm(forms.Form):
         else:
             cleaned_data = super(LoginForm, self).clean()
 class AddForm (forms.Form):
-    a = forms.CharField(widget=forms.Textarea)
+    a = forms.CharField(widget=forms.Textarea,)
