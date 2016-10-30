@@ -10,7 +10,7 @@ read_write = (
 class Db_instance(models.Model):
     ip = models.CharField(max_length=30)
     port = models.CharField(max_length=10)
-    role =  models.CharField(max_length=30,choices=read_write,default='all')
+    role =  models.CharField(max_length=30,choices=read_write, )
     def __unicode__(self):
         return u'%s %s' % (self.ip, self.role)
 
