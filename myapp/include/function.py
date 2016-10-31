@@ -29,11 +29,12 @@ def get_config(group,config_name):
 def filters(data):
     return data.strip(' ').strip('\n').strip('\br')
 
-host = get_config('monitor_server','host')
-port = get_config('monitor_server','port')
-user = get_config('monitor_server','user')
-passwd = get_config('monitor_server','passwd')
-dbname = get_config('monitor_server','dbname')
+host = get_config('settings','host')
+port = get_config('settings','port')
+user = get_config('settings','user')
+passwd = get_config('settings','passwd')
+dbname = get_config('settings','dbname')
+select_limit = int(get_config('settings','select_limit'))
 
 def mysql_exec(sql,param):
     try:
@@ -104,7 +105,7 @@ def check_mysql_query(sqltext,user):
     try :
         num = User.objects.get(username=user).user_profile.select_limit
     except Exception, e:
-        num = 200
+        num = select_limit
     limit = ' limit '+str(num)
 
     sqltext = sqltext.strip().lower()
