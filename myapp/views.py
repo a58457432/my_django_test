@@ -5,13 +5,21 @@ from django.contrib import auth
 from form import AddForm,LoginForm
 from django.http import HttpResponse,HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
-
 path='./myapp/include'
 sys.path.insert(0,path)
 import function as func
 # Create your views here.
+
+class CJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y-%m-%d %H:%M:%S')
+        elif isinstance(obj, date):
+            return obj.strftime("%Y-%m-%d")
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+
 @login_required
 def index(request):
     return render(request, 'include/base.html')
@@ -64,7 +72,7 @@ def mytest(request):
         obj_list.append(row[0])
     print type(obj_list)
 
-    if request.method == 'POST':
+    if request.method == 'POST' or request.method=='GET':
         form = AddForm(request.POST)
         if form.is_valid():
             a = form.cleaned_data['a']
@@ -91,22 +99,9 @@ def mysql_query(request):
                         a = 'explain extended '+a
                 except Exception,e:
                     pass
-                (data_mysql,collist) = func.get_mysql_data(c,a)
-
-
-                paginator = Paginator(data_mysql, 1) # Show 25 contacts per page
-                page = request.GET.get('page')
-                try:
-                    data_mysql = paginator.page(page)
-                except PageNotAnInteger:
-                    # If page is not an integer, deliver first page.
-                    data_mysql = paginator.page(1)
-                except EmptyPage:
-                    # If page is out of range (e.g. 9999), deliver last page of results.
-                    data_mysql = paginator.page(paginator.num_pages)
-
-                print a.encode("utf-8")
-                return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'book_list':data_mysql,'col':collist,'choosed_host':c})
+                (data_mysql,collist,dbname) = func.get_mysql_data(c,a)
+                print request.POST
+                return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'data_list':data_mysql,'col':collist,'choosed_host':c,'dbname':dbname})
         else:
             form = AddForm()
             return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})

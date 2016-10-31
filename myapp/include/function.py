@@ -96,9 +96,13 @@ def get_mysql_data(hosttag,sql):
             tar_passwd = i.passwd
     #print tar_port+tar_passwd+tar_username+tar_host
     results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port,tar_dbname)
-    return results,col
+    return results,col,tar_dbname
+
+#检查输入语句
+
+
 
 def main():
-    result=mysql_query('select 1',user='chang',passwd='chang',host='127.0.0.1',port=int(3306),dbname='django')
+    return 1
 if __name__=='__main__':
     main()

@@ -50,6 +50,7 @@ def mysql_exec(sql,param):
        print "mysql execute: " + str(e)
 
 
+import MySQLdb
 def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbname):
     conn=MySQLdb.connect(host=host,user=user,passwd=passwd,port=int(port),connect_timeout=5,charset='utf8')
     conn.select_db(dbname)
@@ -64,8 +65,11 @@ def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbna
     cursor.close()
     conn.close()
 
+def check_mysql_query(sqltext):
+    sqltext.strip()
+
 def main():
-    result=mysql_query('select 1',user='chang',passwd='chang',host='127.0.0.1',port=int(3306),dbname='django')
+    result=check_mysql_query("select * from mysql")
     print result
 if __name__=='__main__':
     main()
