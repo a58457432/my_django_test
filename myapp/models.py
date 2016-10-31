@@ -29,5 +29,13 @@ class Db_account(models.Model):
     tags = models.CharField(max_length=30)
     dbname = models.ManyToManyField(Db_name)
     def __unicode__(self):
-        return  u'%s %s' % (self.user, self.tags)
+        return  u'%s %s' % ( self.tags,self.role)
+
+class User_profile(models.Model):
+    user = models.OneToOneField(User)
+    select_limit = models.IntegerField(default=200)
+    def __unicode__(self):
+        return  self.user.username
+
+
 # Create your models here.

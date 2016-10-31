@@ -65,11 +65,31 @@ def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbna
     cursor.close()
     conn.close()
 
-def check_mysql_query(sqltext):
-    sqltext.strip()
+def check_mysql_query(sqltext,user):
+    sqltext = sqltext.strip().lower()
+    sqltype = sqltext.split()[0]
+    list_type = ['select','show','desc']
+    #flag 1位有效 0为list_type中的无效值
+    flag=0
+    while True:
+        sqltext = sqltext.strip()
+        lastletter = sqltext[len(sqltext)-1]
+        if (not cmp(lastletter,';')):
+            sqltext = sqltext[:-1]
+        else:
+            break
+
+    for i in list_type:
+        if (not cmp(i,sqltype)):
+            flag=1
+            break
+    if (flag==1):
+        return sqltext
+    else:
+        return "ERROR"
 
 def main():
-    result=check_mysql_query("select * from mysql")
+    result=check_mysql_query("  show  * from mysql  ")
     print result
 if __name__=='__main__':
     main()

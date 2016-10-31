@@ -99,6 +99,38 @@ def get_mysql_data(hosttag,sql):
     return results,col,tar_dbname
 
 #检查输入语句
+def check_mysql_query(sqltext,user):
+    #根据user确定能够select 的行数
+    try :
+        num = User.objects.get(username=user).user_profile.select_limit
+    except Exception, e:
+        num = 200
+    limit = ' limit '+str(num)
+
+    sqltext = sqltext.strip().lower()
+    sqltype = sqltext.split()[0]
+    list_type = ['select','show','desc']
+    #flag 1位有效 0为list_type中的无效值
+    flag=0
+    while True:
+        sqltext = sqltext.strip()
+        lastletter = sqltext[len(sqltext)-1]
+        if (not cmp(lastletter,';')):
+            sqltext = sqltext[:-1]
+        else:
+            break
+    has_limit = cmp(sqltext.split()[-2],'limit')
+    for i in list_type:
+        if (not cmp(i,sqltype)):
+            flag=1
+            break
+    if (flag==1):
+        if (sqltype =='select' and has_limit!=0):
+            return sqltext+limit
+        else:
+            return sqltext
+    else:
+        return "ERROR"
 
 
 

@@ -9,7 +9,7 @@ path='./myapp/include'
 sys.path.insert(0,path)
 import function as func
 # Create your views here.
-
+'''
 class CJsonEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -18,7 +18,7 @@ class CJsonEncoder(json.JSONEncoder):
             return obj.strftime("%Y-%m-%d")
         else:
             return json.JSONEncoder.default(self, obj)
-
+'''
 
 @login_required
 def index(request):
@@ -98,7 +98,8 @@ def mysql_query(request):
                         explaintag = request.POST['explain']
                         a = 'explain extended '+a
                 except Exception,e:
-                    pass
+                    a = func.check_mysql_query(a,request.user.username)
+                print a
                 (data_mysql,collist,dbname) = func.get_mysql_data(c,a)
                 print request.POST
                 return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'data_list':data_mysql,'col':collist,'choosed_host':c,'dbname':dbname})
