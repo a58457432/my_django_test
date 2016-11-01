@@ -2,7 +2,7 @@
 #-*-coding:utf-8-*-
 import MySQLdb,sys,string,time,datetime
 from django.contrib.auth.models import User
-from myapp.models import Db_name,Db_account,Db_instance
+from myapp.models import Db_name,Db_account,Db_instance,Oper_log
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -35,6 +35,7 @@ user = get_config('settings','user')
 passwd = get_config('settings','passwd')
 dbname = get_config('settings','dbname')
 select_limit = int(get_config('settings','select_limit'))
+wrong_msg = get_config('settings','wrong_msg')
 
 def mysql_exec(sql,param):
     try:
@@ -61,7 +62,8 @@ def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbna
     col=[]
     for i in index:
         col.append(i[0])
-    result=cursor.fetchall()
+    #result=cursor.fetchall()
+    result=cursor.fetchmany(size=1000)
     return (result,col)
     cursor.close()
     conn.close()
@@ -77,7 +79,7 @@ def get_mysql_hostlist(username):
     return host_list
 
 
-def get_mysql_data(hosttag,sql):
+def get_mysql_data(hosttag,sql,useraccount):
     #确认dbname
     a = Db_name.objects.filter(dbtag=hosttag)[0]
     #a = Db_name.objects.get(dbtag=hosttag)
@@ -96,7 +98,12 @@ def get_mysql_data(hosttag,sql):
             tar_username = i.user
             tar_passwd = i.passwd
     #print tar_port+tar_passwd+tar_username+tar_host
-    results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port,tar_dbname)
+    try:
+        if (cmp(sql,wrong_msg)):
+            log_mysql_op(useraccount,sql,dbname,hosttag)
+        results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port,tar_dbname)
+    except Exception, e:
+        results,col = mysql_query(wrong_msg,user,passwd,host,int(port),dbname)
     return results,col,tar_dbname
 
 #检查输入语句
@@ -110,7 +117,7 @@ def check_mysql_query(sqltext,user):
 
     sqltext = sqltext.strip().lower()
     sqltype = sqltext.split()[0]
-    list_type = ['select','show','desc']
+    list_type = ['select','show','desc','explain']
     #flag 1位有效 0为list_type中的无效值
     flag=0
     while True:
@@ -120,6 +127,7 @@ def check_mysql_query(sqltext,user):
             sqltext = sqltext[:-1]
         else:
             break
+    #判断语句中是否已经存在limit
     has_limit = cmp(sqltext.split()[-2],'limit')
     for i in list_type:
         if (not cmp(i,sqltype)):
@@ -131,9 +139,26 @@ def check_mysql_query(sqltext,user):
         else:
             return sqltext
     else:
-        return "ERROR"
+        return wrong_msg
 
+#记录用户所有操作
+def log_mysql_op(user,sqltext,dbname,dbtag):
+    user = User.objects.get(username=user)
+    lastlogin = user.last_login+datetime.timedelta(hours=8)
+    create_time = datetime.datetime.now()+datetime.timedelta(hours=8)
+    username = user.username
+    log = Oper_log (user=username,sqltext=sqltext,login_time=lastlogin,create_time=create_time,dbname=dbname,dbtag=dbtag)
+    log.save()
+    return 1
 
+def check_explain (sqltext):
+    sqltext = sqltext.strip().lower()
+    sqltype = sqltext.split()[0]
+    if (sqltype =='select'):
+        sqltext = 'explain json '+sqltext
+        return sqltext
+    else:
+        return wrong_msg
 
 def main():
     return 1
