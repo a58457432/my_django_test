@@ -21,5 +21,6 @@ urlpatterns = (
     url(r'^accounts/login/$',myapp_view.login,name='login'),
     url(r'^accounts/logout/$',myapp_view.logout,name='logout'),
     url(r'^admin/', admin.site.urls),
+    url(r'^log_query/$', myapp_view.log_query,name='log_query'),
     url(r'^mysql_query/$', myapp_view.mysql_query,name='mysql_query'),
 )

@@ -69,17 +69,26 @@ def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbna
     conn.close()
 
 #获取下拉菜单列表
-def get_mysql_hostlist(username):
-    a = User.objects.get(username=username)
+def get_mysql_hostlist(username,tag='tag'):
     host_list=[]
-    #如果没有对应role='read'或者role='all'的account账号，则不显示在下拉菜单中
-    for row in a.db_name_set.all():
-        if row.db_account_set.all().exclude(role='write'):
-            host_list.append(row.dbtag)
+    if (tag=='tag'):
+        a = User.objects.get(username=username)
+        #如果没有对应role='read'或者role='all'的account账号，则不显示在下拉菜单中
+        for row in a.db_name_set.all():
+            if row.db_account_set.all().exclude(role='write'):
+                host_list.append(row.dbtag)
+    elif (tag=='log'):
+        for row in Db_name.objects.values('dbtag').distinct():
+            host_list.append(row['dbtag'])
     return host_list
 
+def get_op_type(methods='get'):
+    #all表示所有种类
+    op_list=['all','truncate','drop','create','delete','update','insert','select','explain','create','show']
+    if (methods=='get'):
+        return op_list
 
-def get_mysql_data(hosttag,sql,useraccount):
+def get_mysql_data(hosttag,sql,useraccount,request):
     #确认dbname
     a = Db_name.objects.filter(dbtag=hosttag)[0]
     #a = Db_name.objects.get(dbtag=hosttag)
@@ -100,7 +109,7 @@ def get_mysql_data(hosttag,sql,useraccount):
     #print tar_port+tar_passwd+tar_username+tar_host
     try:
         if (cmp(sql,wrong_msg)):
-            log_mysql_op(useraccount,sql,dbname,hosttag)
+            log_mysql_op(useraccount,sql,dbname,hosttag,request)
         results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port,tar_dbname)
     except Exception, e:
         results,col = mysql_query(wrong_msg,user,passwd,host,int(port),dbname)
@@ -142,23 +151,55 @@ def check_mysql_query(sqltext,user):
         return wrong_msg
 
 #记录用户所有操作
-def log_mysql_op(user,sqltext,dbname,dbtag):
+def log_mysql_op(user,sqltext,dbname,dbtag,request):
     user = User.objects.get(username=user)
-    lastlogin = user.last_login+datetime.timedelta(hours=8)
-    create_time = datetime.datetime.now()+datetime.timedelta(hours=8)
+    #lastlogin = user.last_login+datetime.timedelta(hours=8)
+    #create_time = datetime.datetime.now()+datetime.timedelta(hours=8)
+    lastlogin = user.last_login
+    create_time = datetime.datetime.now()
     username = user.username
-    log = Oper_log (user=username,sqltext=sqltext,login_time=lastlogin,create_time=create_time,dbname=dbname,dbtag=dbtag)
+    sqltype=sqltext.split()[0]
+    #获取ip地址
+    ipaddr = get_client_ip(request)
+    log = Oper_log (user=username,sqltext=sqltext,sqltype=sqltype,login_time=lastlogin,create_time=create_time,dbname=dbname,dbtag=dbtag,ipaddr=ipaddr)
     log.save()
     return 1
+
+def get_log_data(dbtag,optype,begin,end):
+    if (optype=='all'):
+        #如果结束时间小于开始时间，则以结束时间为准
+        if (end >= begin):
+            log = Oper_log.objects.filter(dbtag=dbtag).filter(create_time__lte=end).filter(create_time__gte=begin).order_by("-create_time")[0:100]
+        else:
+            log = Oper_log.objects.filter(dbtag=dbtag).filter(create_time__lte=end).order_by("-create_time")[0:100]
+    else:
+        if (end >=begin):
+            log = Oper_log.objects.filter(dbtag=dbtag).filter(sqltype=optype).filter(create_time__lte=end).filter(create_time__gte=begin).order_by("-create_time")[0:100]
+        else:
+            log = Oper_log.objects.filter(dbtag=dbtag).filter(sqltype=optype).filter(create_time__lte=end).order_by("-create_time")[0:100]
+    return log
+
 
 def check_explain (sqltext):
     sqltext = sqltext.strip().lower()
     sqltype = sqltext.split()[0]
     if (sqltype =='select'):
-        sqltext = 'explain json '+sqltext
+        sqltext = 'explain extended '+sqltext
         return sqltext
     else:
         return wrong_msg
+
+
+def get_client_ip(request):
+    try:
+        real_ip = request.META['HTTP_X_FORWARDED_FOR']
+        regip = real_ip.split(",")[0]
+    except:
+        try:
+            regip = request.META['REMOTE_ADDR']
+        except:
+            regip = ""
+    return regip
 
 def main():
     return 1

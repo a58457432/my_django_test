@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from django.contrib.admin import widgets
 from django.contrib.auth.models import User
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -31,3 +32,7 @@ class LoginForm(forms.Form):
             cleaned_data = super(LoginForm, self).clean()
 class AddForm (forms.Form):
     a = forms.CharField(widget=forms.Textarea,)
+
+class Logquery(forms.Form):
+    begin = forms.DateTimeField(label='dateinfo')
+    end = forms.DateTimeField()

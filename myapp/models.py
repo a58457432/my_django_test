@@ -33,11 +33,17 @@ class Db_account(models.Model):
 
 class Oper_log(models.Model):
     user = models.CharField(max_length=35)
+    ipaddr = models.CharField(max_length=35)
     dbtag = models.CharField(max_length=35)
     dbname = models.CharField(max_length=40)
     sqltext = models.TextField()
-    create_time = models.DateTimeField()
+    sqltype = models.CharField(max_length=20)
+    create_time = models.DateTimeField(db_index=True)
     login_time = models.DateTimeField()
+    def __unicode__(self):
+        return self.dbtag
+    class Meta:
+        index_together = [["dbtag","sqltype", "create_time"],]
 
 
 
@@ -48,6 +54,7 @@ class User_profile(models.Model):
         return  self.user.username
     class Meta:
         permissions =(('can_mysql_query','can see mysql_query view'),
+                      ('can_log_query','can see log_query view')
                       )
 
 

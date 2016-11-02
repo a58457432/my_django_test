@@ -13,7 +13,7 @@
             <ul class="nav navbar-nav navbar-left">
                 <li><a href="{% url 'mysql_query' %}">MySQL</a></li>
                 <li><a href="#">Mongodb</a></li>
-                <li><a href="#">Profile</a></li>
+                <li><a href="{% url 'log_query' %}">日志查询</a></li>
             </ul>
             {% if user.is_authenticated %}
                 <ul  class="nav navbar-nav navbar-right">
@@ -32,6 +32,9 @@
         </div>
     </div>
 </nav>
+</br>
+</br>
+</br>
 </br>
 </br>
 </br>

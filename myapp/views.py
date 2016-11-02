@@ -1,10 +1,12 @@
 import sys,json,os,datetime
+from django.contrib import admin
 from django.template.context import RequestContext
 from django.shortcuts import render,render_to_response
 from django.contrib import auth
-from form import AddForm,LoginForm
+from form import AddForm,LoginForm,Logquery
 from django.http import HttpResponse,HttpResponseRedirect
 from django.contrib.auth.decorators import login_required,permission_required
+from myapp.models import Db_name,Db_account,Db_instance,Oper_log
 path='./myapp/include'
 sys.path.insert(0,path)
 import function as func
@@ -28,7 +30,7 @@ def index(request):
 def login(request):
     if request.method == 'GET':
         form = LoginForm()
-        return render_to_response('login.html', RequestContext(request, {'form': form,}))
+        return render_to_response('login.html', RequestContext(request, {'form': form}))
     else:
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -41,7 +43,7 @@ def login(request):
             else:
                 return render_to_response('login.html', RequestContext(request, {'form': form,'password_is_wrong':True}))
         else:
-            return render_to_response('login.html', RequestContext(request, {'form': form,}))
+            return render_to_response('login.html', RequestContext(request, {'form': form}))
 
 @login_required
 def logout(request):
@@ -49,30 +51,38 @@ def logout(request):
     return HttpResponseRedirect("/accounts/login/")
 
 @login_required(login_url='/accounts/login/')
-def mytest(request):
-    results,col = func.mysql_query('select host from db_servers_mysql;')
-    obj_list=[]
-    for row in results:
-        obj_list.append(row[0])
-    print type(obj_list)
-
-    if request.method == 'POST' or request.method=='GET':
-        form = AddForm(request.POST)
+@permission_required('myapp.can_log_query', login_url='/')
+def log_query(request):
+    #show every dbtags
+    #obj_list = func.get_mysql_hostlist(request.user.username,'log')
+    #show dbtags permitted to the user
+    obj_list = func.get_mysql_hostlist(request.user.username)
+    optype_list = func.get_op_type()
+    if request.method == 'POST' :
+        print func.get_client_ip(request)
+        form = Logquery(request.POST)
         if form.is_valid():
-            a = form.cleaned_data['a']
-            c = request.POST['cx']
-            (booklist,collist) = func.mysql_query(a)
-            return render(request,'index.html',{'form': form,'objlist':obj_list,'book_list':booklist,'col':collist})
+            begintime = form.cleaned_data['begin']
+            endtime = form.cleaned_data['end']
+            hosttag = request.POST['hosttag']
+            optype = request.POST['optype']
+            print hosttag
+            data = func.get_log_data(hosttag,optype,begintime,endtime)
+            return render(request,'log_query.html',{'form': form,'objlist':obj_list,'optypelist':optype_list,'datalist':data})
+        else:
+            print "not valid"
+            return render(request,'log_query.html',{'form': form,'objlist':obj_list,'optypelist':optype_list})
     else:
-        form = AddForm()
-        return render(request, 'index.html', {'form': form,'objlist':obj_list})
+        form = Logquery()
+        return render(request, 'log_query.html', {'form': form,'objlist':obj_list,'optypelist':optype_list})
+
+
 
 @login_required(login_url='/accounts/login/')
 @permission_required('myapp.can_mysql_query', login_url='/')
 def mysql_query(request):
     #print request.user.username
     print request.user.has_perm('myapp.can_mysql_query')
-    print "what the fuck"
     obj_list = func.get_mysql_hostlist(request.user.username)
     if request.method == 'POST':
         form = AddForm(request.POST)
@@ -86,9 +96,8 @@ def mysql_query(request):
             except Exception,e:
                 a = func.check_mysql_query(a,request.user.username)
             print a
-            (data_mysql,collist,dbname) = func.get_mysql_data(c,a,request.user.username)
+            (data_mysql,collist,dbname) = func.get_mysql_data(c,a,request.user.username,request)
             #print request.POST
-
             return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'data_list':data_mysql,'col':collist,'choosed_host':c,'dbname':dbname})
         else:
             return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
