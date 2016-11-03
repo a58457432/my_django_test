@@ -23,4 +23,6 @@ urlpatterns = (
     url(r'^admin/', admin.site.urls),
     url(r'^log_query/$', myapp_view.log_query,name='log_query'),
     url(r'^mysql_query/$', myapp_view.mysql_query,name='mysql_query'),
+    url(r'^mysql_exec/$', myapp_view.mysql_exec,name='mysql_exec'),
+    url(r'^test/$', myapp_view.some_streaming_csv_view,name='some_streaming_csv_view'),
 )

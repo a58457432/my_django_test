@@ -1,0 +1,81 @@
+{% extends "include/base.html" %}
+{% block title %}
+    <title>MySQL_EXEC</title>
+{% endblock %}
+{% block name %}
+    欢迎使用MySQL数据库执行功能
+{% endblock %}
+{%block content%}
+    <table >
+        <tr>
+            <td>
+            </br>
+            </br>
+                <form role="form" method='post'>
+                    {% csrf_token %}
+                    CHOOSE :
+                    {%  if choosed_host %}
+                        <select class="form-control col-md-1" name = "cx">
+                            <option value ="{{ choosed_host }}">{{ choosed_host }}</option>
+                        </select></br>
+                        <a href="/mysql_exec/"><input type="button" value="重新选库" class="btn btn-danger"></a>
+                    {% else %}
+                        <select class="form-control col-md-1" name = "cx">
+                            {% for obj in objlist %}
+                                <option value ="{{ obj }}">{{ obj }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                    </br> </br>
+                    请在下面输入执行语句:</br>
+                    {{ form.a }} </br> </br>
+                    <button type="submit"  class="btn btn-primary">提交</button >
+                    <button type="submit" name='explain' class="btn btn-info" value="1">查看执行计划</button>
+                </form >
+            </td>
+            <td>
+                <div class="col-md-12">
+                    <h3>查询注意事项:</h3>
+                    <p> 支持单条语句查询，勿在框中重复输入多条sql语句</p>
+                    <p> 查看表结构语句如:show create table (dbname.)tablename</p>
+                    <p> 查看表结构语句如:desc (dbname.)tablename或者show fields in (dbname.)tablename</p>
+                    <p> 查看执行计划可以直接点击按钮或者输入"explain (extended) select..."然后点击提交</p>
+                    <p> 查看库中的表名如: show tables (in dbname)</p>
+                    <p> 查看所有的库名如: show databases</p>
+
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {% if col %}
+        <table  class="table table-condensed" border="1">
+            <tr class="danger">
+                QUERY IN:{{ dbname }}
+            </tr>
+        </table>
+        {% include "include/pagejump/pagebutton.html" %}
+    {% endif %}
+    <table id="mytable" class="table table-condensed" border="1">
+        <thead>
+        <tr class="danger">
+            {% for colname in col %}
+                <th>{{ colname }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody  >
+        {% for item in data_list %}
+            <tr>
+                {% for item_detail in item %}
+                    <td> {{ item_detail }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
+{% block script %}
+    {% include "include/pagejump/pagejump.html" %}
+{% endblock %}

@@ -12,7 +12,7 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-left">
                 <li><a href="{% url 'mysql_query' %}">MySQL</a></li>
-                <li><a href="#">Mongodb</a></li>
+                <li><a href="{% url 'mysql_exec' %}">MySQL_EXEC</a></li>
                 <li><a href="{% url 'log_query' %}">日志查询</a></li>
             </ul>
             {% if user.is_authenticated %}

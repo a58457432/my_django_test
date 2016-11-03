@@ -80,6 +80,13 @@ def get_mysql_hostlist(username,tag='tag'):
     elif (tag=='log'):
         for row in Db_name.objects.values('dbtag').distinct():
             host_list.append(row['dbtag'])
+    elif (tag=='exec'):
+        a = User.objects.get(username=username)
+        #如果没有对应role='write'或者role='all'的account账号，则不显示在下拉菜单中
+        for row in a.db_name_set.all():
+            if row.db_account_set.all().exclude(role='read'):
+                host_list.append(row.dbtag)
+
     return host_list
 
 def get_op_type(methods='get'):
@@ -109,7 +116,7 @@ def get_mysql_data(hosttag,sql,useraccount,request):
     #print tar_port+tar_passwd+tar_username+tar_host
     try:
         if (cmp(sql,wrong_msg)):
-            log_mysql_op(useraccount,sql,dbname,hosttag,request)
+            log_mysql_op(useraccount,sql,tar_dbname,hosttag,request)
         results,col = mysql_query(sql,tar_username,tar_passwd,tar_host,tar_port,tar_dbname)
     except Exception, e:
         results,col = mysql_query(wrong_msg,user,passwd,host,int(port),dbname)
@@ -151,7 +158,7 @@ def check_mysql_query(sqltext,user):
         return wrong_msg
 
 #记录用户所有操作
-def log_mysql_op(user,sqltext,dbname,dbtag,request):
+def log_mysql_op(user,sqltext,mydbname,dbtag,request):
     user = User.objects.get(username=user)
     #lastlogin = user.last_login+datetime.timedelta(hours=8)
     #create_time = datetime.datetime.now()+datetime.timedelta(hours=8)
@@ -161,7 +168,7 @@ def log_mysql_op(user,sqltext,dbname,dbtag,request):
     sqltype=sqltext.split()[0]
     #获取ip地址
     ipaddr = get_client_ip(request)
-    log = Oper_log (user=username,sqltext=sqltext,sqltype=sqltype,login_time=lastlogin,create_time=create_time,dbname=dbname,dbtag=dbtag,ipaddr=ipaddr)
+    log = Oper_log (user=username,sqltext=sqltext,sqltype=sqltype,login_time=lastlogin,create_time=create_time,dbname=mydbname,dbtag=dbtag,ipaddr=ipaddr)
     log.save()
     return 1
 

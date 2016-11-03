@@ -1,10 +1,10 @@
-import sys,json,os,datetime
+import sys,json,os,datetime,csv
 from django.contrib import admin
 from django.template.context import RequestContext
 from django.shortcuts import render,render_to_response
 from django.contrib import auth
 from form import AddForm,LoginForm,Logquery
-from django.http import HttpResponse,HttpResponseRedirect
+from django.http import HttpResponse,HttpResponseRedirect,StreamingHttpResponse
 from django.contrib.auth.decorators import login_required,permission_required
 from myapp.models import Db_name,Db_account,Db_instance,Oper_log
 path='./myapp/include'
@@ -106,3 +106,51 @@ def mysql_query(request):
         return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
 
 
+@login_required(login_url='/accounts/login/')
+@permission_required('myapp.can_mysql_query', login_url='/')
+def mysql_exec(request):
+    #print request.user.username
+    obj_list = func.get_mysql_hostlist(request.user.username,'exec')
+    if request.method == 'POST':
+        form = AddForm(request.POST)
+        if form.is_valid():
+            a = form.cleaned_data['a']
+            c = request.POST['cx']
+            try:
+                if request.POST['explain']== u'1':
+                    explaintag = request.POST['explain']
+                    a = func.check_explain (a)
+            except Exception,e:
+                a = func.check_mysql_query(a,request.user.username)
+            print a
+            (data_mysql,collist,dbname) = func.get_mysql_data(c,a,request.user.username,request)
+            #print request.POST
+            return render(request,'mysql_query.html',{'form': form,'objlist':obj_list,'data_list':data_mysql,'col':collist,'choosed_host':c,'dbname':dbname})
+        else:
+            return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
+    else:
+        form = AddForm()
+        return render(request, 'mysql_query.html', {'form': form,'objlist':obj_list})
+
+
+
+class Echo(object):
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
+
+def some_streaming_csv_view(request):
+    """A view that streams a large CSV file."""
+    # Generate a sequence of rows. The range is based on the maximum number of
+    # rows that can be handled by a single sheet in most spreadsheet
+    # applications.
+    rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+    response = StreamingHttpResponse((writer.writerow(row) for row in rows),
+                                     content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    return response

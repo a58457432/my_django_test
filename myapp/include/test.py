@@ -28,11 +28,11 @@ def get_config(group,config_name):
 def filters(data):
     return data.strip(' ').strip('\n').strip('\br')
 
-host = get_config('monitor_server','host')
-port = get_config('monitor_server','port')
-user = get_config('monitor_server','user')
-passwd = get_config('monitor_server','passwd')
-dbname = get_config('monitor_server','dbname')
+host = get_config('settings','host')
+port = get_config('settings','port')
+user = 'test'
+passwd = 'test'
+dbname = 'test'
 
 def mysql_exec(sql,param):
     try:
@@ -50,46 +50,8 @@ def mysql_exec(sql,param):
        print "mysql execute: " + str(e)
 
 
-import MySQLdb
-def mysql_query(sql,user=user,passwd=passwd,host=host,port=int(port),dbname=dbname):
-    conn=MySQLdb.connect(host=host,user=user,passwd=passwd,port=int(port),connect_timeout=5,charset='utf8')
-    conn.select_db(dbname)
-    cursor = conn.cursor()
-    count=cursor.execute(sql)
-    index=cursor.description
-    col=[]
-    for i in index:
-        col.append(i[0])
-    result=cursor.fetchall()
-    return (result,col)
-    cursor.close()
-    conn.close()
-
-def check_mysql_query(sqltext,user):
-    sqltext = sqltext.strip().lower()
-    sqltype = sqltext.split()[0]
-    list_type = ['select','show','desc']
-    #flag 1位有效 0为list_type中的无效值
-    flag=0
-    while True:
-        sqltext = sqltext.strip()
-        lastletter = sqltext[len(sqltext)-1]
-        if (not cmp(lastletter,';')):
-            sqltext = sqltext[:-1]
-        else:
-            break
-
-    for i in list_type:
-        if (not cmp(i,sqltype)):
-            flag=1
-            break
-    if (flag==1):
-        return sqltext
-    else:
-        return "ERROR"
-
 def main():
-    result=check_mysql_query("  show  * from mysql  ")
+    result=mysql_exec(" create table t1 (id int) ;insert into t1 VALUES (2) ",'')
     print result
 if __name__=='__main__':
     main()
